@@ -1,0 +1,216 @@
+---
+displayMode: compact
+config:
+  gantt:
+    leftPadding: 190
+    barHeight: 22
+---
+gantt
+    title Diagrama O-T · Bolígrafo retráctil 
+    dateFormat X
+    axisFormat %M:%S
+    tickInterval 1minute
+
+    section I · Inyección cuerpo
+    P1 :i1, 0, 58.69s
+    P2 :active, i2, after i1, 58.69s
+    P3 :done, i3, after g1, 58.69s
+    P4 :crit, i4, after m1, 58.69s
+    P5 :i5, after e1, 58.69s
+    P6 :active, i6, after q1, 58.69s
+    P7 :done, i7, after q2, 58.69s
+    P8 :crit, i8, after q3, 58.69s
+    P9 :i9, after q4, 58.69s
+    P10 :active, i10, after l7, 58.69s
+    P11 :done, i11, after l8, 58.69s
+    P12 :crit, i12, after l9, 58.69s
+    P13 :i13, after l10, 58.69s
+    P14 :active, i14, after l11, 58.69s
+    P15 :done, i15, after l12, 58.69s
+    P16 :crit, i16, after l13, 58.69s
+    P17 :i17, after l14, 58.69s
+    P18 :active, i18, after l15, 58.69s
+    P19 :done, i19, after l16, 58.69s
+    P20 :crit, i20, after l17, 58.69s
+
+    section N · Inyección cono
+    P1 :n1, 0, 42.39s
+    P2 :active, n2, after i1, 42.39s
+    P3 :done, n3, after g1, 42.39s
+    P4 :crit, n4, after m1, 42.39s
+    P5 :n5, after e1, 42.39s
+    P6 :active, n6, after q1, 42.39s
+    P7 :done, n7, after q2, 42.39s
+    P8 :crit, n8, after q3, 42.39s
+    P9 :n9, after q4, 42.39s
+    P10 :active, n10, after l7, 42.39s
+    P11 :done, n11, after l8, 42.39s
+    P12 :crit, n12, after l9, 42.39s
+    P13 :n13, after l10, 42.39s
+    P14 :active, n14, after l11, 42.39s
+    P15 :done, n15, after l12, 42.39s
+    P16 :crit, n16, after l13, 42.39s
+    P17 :n17, after l14, 42.39s
+    P18 :active, n18, after l15, 42.39s
+    P19 :done, n19, after l16, 42.39s
+    P20 :crit, n20, after l17, 42.39s
+
+    section U · Inyección pulsador
+    P1 :u1, 0, 54.90s
+    P2 :active, u2, after i1, 54.90s
+    P3 :done, u3, after g1, 54.90s
+    P4 :crit, u4, after m1, 54.90s
+    P5 :u5, after e1, 54.90s
+    P6 :active, u6, after q1, 54.90s
+    P7 :done, u7, after q2, 54.90s
+    P8 :crit, u8, after q3, 54.90s
+    P9 :u9, after q4, 54.90s
+    P10 :active, u10, after l7, 54.90s
+    P11 :done, u11, after l8, 54.90s
+    P12 :crit, u12, after l9, 54.90s
+    P13 :u13, after l10, 54.90s
+    P14 :active, u14, after l11, 54.90s
+    P15 :done, u15, after l12, 54.90s
+    P16 :crit, u16, after l13, 54.90s
+    P17 :u17, after l14, 54.90s
+    P18 :active, u18, after l15, 54.90s
+    P19 :done, u19, after l16, 54.90s
+    P20 :crit, u20, after l17, 54.90s
+
+
+    section G · Sobremoldeo grip
+    P1 :g1, after i1, 64.92s
+    P2 :active, g2, after g1, 64.92s
+    P3 :done, g3, after m1, 64.92s
+    P4 :crit, g4, after e1, 64.92s
+    P5 :g5, after q1, 64.92s
+    P6 :active, g6, after q2, 64.92s
+    P7 :done, g7, after q3, 64.92s
+    P8 :crit, g8, after q4, 64.92s
+    P9 :g9, after l7, 64.92s
+    P10 :active, g10, after l8, 64.92s
+    P11 :done, g11, after l9, 64.92s
+    P12 :crit, g12, after l10, 64.92s
+    P13 :g13, after l11, 64.92s
+    P14 :active, g14, after l12, 64.92s
+    P15 :done, g15, after l13, 64.92s
+    P16 :crit, g16, after l14, 64.92s
+    P17 :g17, after l15, 64.92s
+    P18 :active, g18, after l16, 64.92s
+    P19 :done, g19, after l17, 64.92s
+    P20 :crit, g20, after l18, 64.92s
+
+    section M · Mecanismo retráctil
+    P1 :m1, after g1, 65.08s
+    P2 :active, m2, after m1, 65.08s
+    P3 :done, m3, after e1, 65.08s
+    P4 :crit, m4, after q1, 65.08s
+    P5 :m5, after q2, 65.08s
+    P6 :active, m6, after q3, 65.08s
+    P7 :done, m7, after q4, 65.08s
+    P8 :crit, m8, after l7, 65.08s
+    P9 :m9, after l8, 65.08s
+    P10 :active, m10, after l9, 65.08s
+    P11 :done, m11, after l10, 65.08s
+    P12 :crit, m12, after l11, 65.08s
+    P13 :m13, after l12, 65.08s
+    P14 :active, m14, after l13, 65.08s
+    P15 :done, m15, after l14, 65.08s
+    P16 :crit, m16, after l15, 65.08s
+    P17 :m17, after l16, 65.08s
+    P18 :active, m18, after l17, 65.08s
+    P19 :done, m19, after l18, 65.08s
+    P20 :crit, m20, after l19, 65.08s
+
+
+
+    section T · Montaje portatintas
+    P1 :t1, 0, 73.73s
+    P2 :active, t2, after t1, 73.73s
+    P3 :done, t3, after l1, 73.73s
+    P4 :crit, t4, after l2, 73.73s
+    P5 :t5, after l3, 73.73s
+    P6 :active, t6, after l4, 73.73s
+    P7 :done, t7, after l5, 73.73s
+    P8 :crit, t8, after l6, 73.73s
+    P9 :t9, after l7, 73.73s
+    P10 :active, t10, after l8, 73.73s
+    P11 :done, t11, after l9, 73.73s
+    P12 :crit, t12, after l10, 73.73s
+    P13 :t13, after l11, 73.73s
+    P14 :active, t14, after l12, 73.73s
+    P15 :done, t15, after l13, 73.73s
+    P16 :crit, t16, after l14, 73.73s
+    P17 :t17, after l15, 73.73s
+    P18 :active, t18, after l16, 73.73s
+    P19 :done, t19, after l17, 73.73s
+    P20 :crit, t20, after l18, 73.73s
+
+    section L · Llenado tinta
+    P1 :l1, after t1, 84.48s
+    P2 :active, l2, after l1, 84.48s
+    P3 :done, l3, after l2, 84.48s
+    P4 :crit, l4, after l3, 84.48s
+    P5 :l5, after l4, 84.48s
+    P6 :active, l6, after l5, 84.48s
+    P7 :done, l7, after l6, 84.48s
+    P8 :crit, l8, after l7, 84.48s
+    P9 :l9, after l8, 84.48s
+    P10 :active, l10, after l9, 84.48s
+    P11 :done, l11, after l10, 84.48s
+    P12 :crit, l12, after l11, 84.48s
+    P13 :l13, after l12, 84.48s
+    P14 :active, l14, after l13, 84.48s
+    P15 :done, l15, after l14, 84.48s
+    P16 :crit, l16, after l15, 84.48s
+    P17 :l17, after l16, 84.48s
+    P18 :active, l18, after l17, 84.48s
+    P19 :done, l19, after l18, 84.48s
+    P20 :crit, l20, after l19, 84.48s
+
+
+
+    section E · Ensamblaje final
+    P1 :e1, after m1, 76.86s
+    P2 :active, e2, after e1, 76.86s
+    P3 :done, e3, after q1, 76.86s
+    P4 :crit, e4, after q2, 76.86s
+    P5 :e5, after q3, 76.86s
+    P6 :active, e6, after q4, 76.86s
+    P7 :done, e7, after l7, 76.86s
+    P8 :crit, e8, after l8, 76.86s
+    P9 :e9, after l9, 76.86s
+    P10 :active, e10, after l10, 76.86s
+    P11 :done, e11, after l11, 76.86s
+    P12 :crit, e12, after l12, 76.86s
+    P13 :e13, after l13, 76.86s
+    P14 :active, e14, after l14, 76.86s
+    P15 :done, e15, after l15, 76.86s
+    P16 :crit, e16, after l16, 76.86s
+    P17 :e17, after l17, 76.86s
+    P18 :active, e18, after l18, 76.86s
+    P19 :done, e19, after l19, 76.86s
+    P20 :crit, e20, after l20, 76.86s
+
+
+    section Q · Control calidad
+    P1 :q1, after e1, 79.06s
+    P2 :active, q2, after q1, 79.06s
+    P3 :done, q3, after q2, 79.06s
+    P4 :crit, q4, after q3, 79.06s
+    P5 :q5, after q4, 79.06s
+    P6 :active, q6, after q5, 79.06s
+    P7 :done, q7, after e7, 79.06s
+    P8 :crit, q8, after e8, 79.06s
+    P9 :q9, after e9, 79.06s
+    P10 :active, q10, after e10, 79.06s
+    P11 :done, q11, after e11, 79.06s
+    P12 :crit, q12, after e12, 79.06s
+    P13 :q13, after e13, 79.06s
+    P14 :active, q14, after e14, 79.06s
+    P15 :done, q15, after e15, 79.06s
+    P16 :crit, q16, after e16, 79.06s
+    P17 :q17, after e17, 79.06s
+    P18 :active, q18, after e18, 79.06s
+    P19 :done, q19, after e19, 79.06s
+    P20 :crit, q20, after e20, 79.06s

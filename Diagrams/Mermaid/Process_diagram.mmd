@@ -1,0 +1,24 @@
+flowchart LR
+    subgraph sg1 ["`**VALOR AÑADIDO**`"]
+
+    subgraph Mecánica 
+        I["`**I**<br>Inyección del cuerpo`"] -- 58,69 s/pieza--> G["`**G**<br>Sobremoldeo del grip de TPU`"]
+        N["`**N**<br>Inyección del cono de punta`"] -- 42,39 s/pieza--> G
+        U["`**U**<br>Inyección de pulsador y clip`"] -- 54,90 s/pieza--> G
+        G -- 64,92 s/pieza--> M["`**M**<br>Montaje del mecanismo retráctil`"]
+    end
+    
+    subgraph Tinta
+        T["`**T**<br>Montaje del portatintas`"] -- 73,73 s/pieza--> L["`**L**<br>Llenado de tinta y sellado`"]
+    end
+    L -- 84,48 s/pieza--> E["`**E**<br>Ensamblaje final`"]
+    M -- 65,08 s/pieza--> E
+
+    end
+
+    subgraph sg2 ["`**NO VALOR AÑADIDO**`"]
+    E -- 76,86 s/pieza-->Q["`**Q**<br>Control de calidad`"]
+    
+    Q -- 79,06 s/pieza--> R["`**R**<br>Retrabajo y embalaje`"]
+
+    end

@@ -1,0 +1,51 @@
+
+DIAGRAMA O-T · BOLÍGRAF RETRÀCTIL — comanda de 100 peces
+Règim calculat amb P10 → P20 (10 intervals)
+──────────────────────────────────────────────────────────────────────────────
+Termini de lliurament (100 peces)      8677.65 s   = 2 h 24 min 37.65 s
+Temps de cicle del procés               84.48 s/peça   (coll d'ampolla: L · Llenado tinta, 84.48 s)
+Capacitat                               42.61 peces/h
+Productivitat                            4.73 peces/h/recurs   (9 recursos)
+
+ESTOC ENTRE OPERACIONS
+              — règim (P10→P20) —            — comanda (P0→P100) —        
+Magatzem     espera/peça   estoc mitjà  espera màx  estoc màx  estoc mitjà
+I → G            25.79 s        0.31 p     25.79 s        1 p       0.29 p
+N → G            42.09 s        0.50 p     42.09 s        1 p       0.47 p
+U → G            29.58 s        0.35 p     29.58 s        1 p       0.33 p
+G → M            19.56 s        0.23 p     19.56 s        1 p       0.22 p
+T → L            10.75 s        0.13 p     10.75 s        1 p       0.12 p
+M → E            19.40 s        0.23 p     19.40 s        1 p       0.22 p
+L → E             0.00 s        0.00 p     30.48 s        1 p       0.01 p
+E → Q             0.00 s        0.00 p      2.20 s        1 p       0.00 p
+
+ESPERA DELS RECURSOS
+Op  Recurs                    t op  espera/peça  utilització  espera inicial  espera total*
+I   Inyección cuerpo         58.69      25.79 s       69.5%          0.00 s      2457.98 s
+N   Inyección cono           42.39      42.09 s       50.2%          0.00 s      4071.68 s
+U   Inyección pulsador       54.90      29.58 s       65.0%          0.00 s      2833.19 s
+G   Sobremoldeo grip         64.92      19.56 s       76.8%         58.69 s      1867.00 s
+M   Mecanismo retráctil      65.08      19.40 s       77.0%        123.61 s      1870.72 s
+T   Montaje portatintas      73.73      10.75 s       87.3%          0.00 s      1053.50 s
+L   Llenado tinta            84.48       0.00 s      100.0%         73.73 s         0.00 s
+E   Ensamblaje final         76.86       7.62 s       91.0%        188.69 s       723.90 s
+Q   Control calidad          79.06       5.42 s       93.6%        265.55 s       506.10 s
+  espera/peça i utilització: règim · *espera total entre peces dins la comanda
+
+PECES (entrada = inici de la primera operació, sortida = final de Q)
+  Peça   entrada (s)   sortida (s)  temps de pas (s)
+    P1          0.00        344.61            344.61
+    P2         58.69        423.67            364.98
+    P3        123.61        502.73            379.12
+    P4        188.69        581.79            393.10
+    P5        265.55        660.85            395.30
+     …
+   P10        665.09       1074.45            409.36
+   P20       1509.89       1919.25            409.36
+     …
+   P99       8183.81       8593.17            409.36
+  P100       8268.29       8677.65            409.36
+
+COMPROVACIÓ DEL DIAGRAMA
+  Cap recurs fa dues peces alhora i cap operació comença abans que les seves entrades.
+
