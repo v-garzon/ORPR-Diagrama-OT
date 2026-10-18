@@ -393,7 +393,7 @@ DEFINICIONES = [
      "surten de Q en una hora de règim (p36, unitats lliurades per hora)."),
     ("Productivitat",
      "Capacitat d'un recurs mesurada per unitat de temps i de recurs (p5): capacitat / nº de recursos. "
-     "Depèn del que es compti com a recurs (màquines o operaris); es canvia al diccionari RECURSOS."),
+     "Depèn del que es compti com a recurs (màquines o operaris)."),
     ("Estoc (WIP)",
      "Producte en elaboració que espera a ser processat (p6). Al diagrama és el temps entre el final "
      "d'una operació i l'inici de la següent per a la mateixa peça (les fletxes puntejades). Es "
@@ -440,40 +440,72 @@ def imprimir_informe(m: dict, detalle: bool = False) -> None:
 
     # 1 ───────────────────────────────────────────────────────────────────────
     _titulo("1. RESULTATS")
-    po = m["por_operacion"]
-    mas_espera = max(po, key=lambda r: r["espera_entre_piezas"])
-    max_alm = max(e["estoc_max"] for e in m["estoc"]) if m["estoc"] else 0
-    print(f"Termini de lliurament ({N} peces) {m['termini_s']:>12.2f} s   = {_hms(m['termini_s'])}")
-    print(f"Temps de cicle del procés         {m['ciclo_s']:>12.2f} s/peça"
-          f"   (coll d'ampolla: {cb} · {OPERACIONES[cb][0]}, {OPERACIONES[cb][1]:.2f} s)")
-    print(f"Capacitat                         {m['capacidad_h']:>12.2f} peces/h")
-    print(f"Productivitat                     {m['productividad_h_recurso']:>12.2f} peces/h/recurs"
-          f"   ({m['n_recursos']} recursos)")
-    print(f"Estoc                             màx {max_alm} peça per magatzem · màx {m['estoc_max_linea']} "
-          f"peces en cua a tota la línia")
-    print(f"{'':34}{sim['wip_regimen']:.2f} bolígrafs de mitjana dins el procés en règim "
-          f"(màx {sim['wip_max']})")
-    print(f"Espera dels recursos              {sim['esperas_total_s']:.2f} s en total · la més gran: "
-          f"{mas_espera['op']} ({mas_espera['espera_entre_piezas']:.2f} s)")
-    print(f"Equilibrat de la línia            {sim['equilibrado']:.1%}   "
-          f"({nt['espera_ciclo_sim_s']:.2f} s d'espera per cicle sobre "
-          f"{m['n_recursos']} × {m['ciclo_s']:.2f} s)")
+    for etiqueta, valor in _resultados(m):
+        print(textwrap.fill(valor, width=ANCHO, initial_indent=f"{etiqueta:34}", subsequent_indent=" " * 34))
 
     # 2 ───────────────────────────────────────────────────────────────────────
     _titulo("2. TEORIA (P3-Id_fluxe) vs SIMULACIÓ (diagrama O-T)")
+    print(f"{'Magnitud':27}{'Fórmula (pàgina P3)':30}{'Teoria':>14}{'Simulació':>14}{'Diferència':>14}")
+    for nombre, formula, ft, fs, fd in _filas_teoria(m):
+        print(f"{nombre:27}{formula:30}{ft:>14}{fs:>14}{fd:>14}")
+    print(_parrafo(_nota_asterisco(m)))
+    print("\n  Per què difereixen")
+    for texto in _notas(m):
+        print(_parrafo("· " + texto))
+    _seccions_finals(m, detalle)
 
-    def fila(nombre, formula, t, s, unidad="s", dec=2, dif=True, marca=""):
-        ft = f"{t:.{dec}f}{unidad}" if unidad != "%" else f"{t:.1%}"
-        fs = f"{s:.{dec}f}{unidad}" if unidad != "%" else f"{s:.1%}"
+
+def _piezas_a_mostrar(m: dict, detalle: bool) -> list[dict | None]:
+    """Todas las piezas, o una selección (inicio, ventana de régimen y final); None = salto."""
+    files, (a, b) = m["piezas"], m["ventana"]
+    if detalle or len(files) <= 12:
+        return files
+    mostrar = files[:5] + [None] + [f for f in files if f["pieza"] in (a, b)] + [None] + files[-2:]
+    vistos, net = set(), []
+    for f in mostrar:  # sin duplicados y conservando los separadores
+        if f is None or f["pieza"] not in vistos:
+            net.append(f)
+            vistos.add(None if f is None else f["pieza"])
+    return net
+
+
+def _resultados(m: dict) -> list[tuple[str, str]]:
+    """Resumen de resultados: (parámetro, valor) en catalán."""
+    N, cb, sim, nt = m["n_piezas"], m["cuello_botella"], m["simulacion"], m["notas"]
+    mas_espera = max(m["por_operacion"], key=lambda r: r["espera_entre_piezas"])
+    max_alm = max(e["estoc_max"] for e in m["estoc"]) if m["estoc"] else 0
+    return [
+        (f"Termini de lliurament ({N} peces)", f"{m['termini_s']:.2f} s = {_hms(m['termini_s'])}"),
+        ("Temps de cicle del procés", f"{m['ciclo_s']:.2f} s/peça (coll d'ampolla: {cb} · "
+                                      f"{OPERACIONES[cb][0]}, {OPERACIONES[cb][1]:.2f} s)"),
+        ("Capacitat", f"{m['capacidad_h']:.2f} peces/h"),
+        ("Productivitat", f"{m['productividad_h_recurso']:.2f} peces/h/recurs ({m['n_recursos']} recursos)"),
+        ("Estoc", f"màx {max_alm} peça per magatzem · màx {m['estoc_max_linea']} peces en cua a tota la "
+                  f"línia · {sim['wip_regimen']:.2f} bolígrafs de mitjana dins el procés en règim "
+                  f"(màx {sim['wip_max']})"),
+        ("Espera dels recursos", f"{sim['esperas_total_s']:.2f} s en total · la més gran: "
+                                 f"{mas_espera['op']} ({mas_espera['espera_entre_piezas']:.2f} s)"),
+        ("Equilibrat de la línia", f"{sim['equilibrado']:.1%} ({nt['espera_ciclo_sim_s']:.2f} s d'espera per "
+                                   f"cicle sobre {m['n_recursos']} × {m['ciclo_s']:.2f} s)"),
+    ]
+
+
+def _filas_teoria(m: dict) -> list[tuple[str, str, str, str, str]]:
+    """Filas de la comparación teoría vs simulación: (magnitud, fórmula, teoría, simulación, diferencia)."""
+    N, teo, sim = m["n_piezas"], m["teoria"], m["simulacion"]
+    filas = []
+
+    def fila(nombre, formula, t, s, unidad="s", dif=True, marca=""):
+        ft = f"{t:.1%}" if unidad == "%" else f"{t:.2f}{unidad}"
+        fs = f"{s:.1%}" if unidad == "%" else f"{s:.2f}{unidad}"
         if not dif:
             fd = "—"
         elif unidad == "%":
             fd = f"{(s - t) * 100:+.1f} pp"
         else:
-            fd = f"{s - t:+.{dec}f}{unidad}"
-        print(f"{nombre + marca:27}{formula:30}{ft:>14}{fs:>14}{fd:>14}")
+            fd = f"{s - t:+.2f}{unidad}"
+        filas.append((nombre + marca, formula, ft, fs, fd))
 
-    print(f"{'Magnitud':27}{'Fórmula (pàgina P3)':30}{'Teoria':>14}{'Simulació':>14}{'Diferència':>14}")
     fila("Lead time 1a unitat", "LTu = Σt camí crític (p41)", teo["lt_unidad_s"], sim["lt_unidad_s"], " s")
     fila(f"Termini ({N} peces)", "LTu + CM·(Q−1) (p41)", teo["termini_s"], sim["termini_s"], " s")
     fila("Temps de cicle", "C = CM = màx t (p17, p41)", teo["ciclo_s"], sim["ciclo_s"], " s")
@@ -488,10 +520,19 @@ def imprimir_informe(m: dict, detalle: bool = False) -> None:
     fila("Esperes dels recursos", "Σ (CM − t)·(Q−1) (p17, p46)", teo["esperas_total_s"],
          sim["esperas_total_s"], " s")
     fila("Equilibrat de la línia", "Σt / (recursos · CM)", teo["equilibrado"], sim["equilibrado"], "%")
-    print(_parrafo(f"* Hipòtesi de la fórmula: {nt['ruta'][0]} empeny al seu ritme (C1 = {nt['c1_s']:.2f} s), "
-                   "no al del coll d'ampolla; no és comparable directament amb el diagrama."))
+    return filas
 
-    print("\n  Per què difereixen")
+
+def _nota_asterisco(m: dict) -> str:
+    nt = m["notas"]
+    return (f"* Hipòtesi de la fórmula: {nt['ruta'][0]} empeny al seu ritme (C1 = {nt['c1_s']:.2f} s), "
+            "no al del coll d'ampolla; no és comparable directament amb el diagrama.")
+
+
+def _notas(m: dict) -> list[str]:
+    """Explicación de las diferencias entre teoría y simulación."""
+    N, cb, teo, sim, nt = m["n_piezas"], m["cuello_botella"], m["teoria"], m["simulacion"], m["notas"]
+    notas = []
     d_termini = sim["termini_s"] - teo["termini_s"]
     if abs(d_termini) < 0.005:
         txt = "Termini: coincideixen."
@@ -507,29 +548,29 @@ def imprimir_informe(m: dict, detalle: bool = False) -> None:
     else:
         txt = (f"Termini: el diagrama dona {d_termini:+.2f} s respecte a la fórmula per retards o "
                f"avançaments en l'arrencada.")
-    print(_parrafo("· " + txt))
+    notas.append(txt)
 
     esperas = ", ".join(f"{o}→{d} {w:.2f} s" for o, d, w in nt["esperas_camino"])
-    print(_parrafo(
-        f"· Estoc en procés: la fórmula [3] amb LTu suposa que la peça no espera mai. En règim cada "
+    notas.append(
+        f"Estoc en procés: la fórmula [3] amb LTu suposa que la peça no espera mai. En règim cada "
         f"bolígraf passa {nt['espera_camino_regimen_s']:.2f} s en cues al camí crític ({esperas}), que "
         f"equivalen a {nt['espera_camino_regimen_s'] / m['ciclo_s']:.2f} bolígrafs d'estoc "
-        f"({nt['espera_camino_regimen_s']:.2f} / {m['ciclo_s']:.2f})."))
+        f"({nt['espera_camino_regimen_s']:.2f} / {m['ciclo_s']:.2f}).")
     if N < 2:
-        return _seccions_finals(m, detalle)
-    print(_parrafo(
-        f"· Estoc màxim i retard (*): les fórmules [7] i [10] serien les d'una línia en què "
+        return notas
+    notas.append(
+        f"Estoc màxim i retard (*): les fórmules [7] i [10] serien les d'una línia en què "
         f"{nt['ruta'][0]} empeny al seu ritme: l'estoc arribaria a {teo['wip_max_push']:.2f} bolígrafs "
         f"i l'última peça tardaria {teo['retraso_push_s']:.2f} s més que la primera. Al diagrama "
         f"{nt['ruta'][0]} arrenca al ritme del coll d'ampolla (p18), per això l'estoc no creix i el "
         f"temps de pas és constant a partir de P{nt['paso_constante_desde']}; el retard de "
-        f"{sim['retraso_s']:.2f} s només es produeix a les primeres peces."))
-    print(_parrafo(
-        f"· Esperes: la fórmula suposa que cada recurs espera CM − t des de la 2a peça. En règim "
+        f"{sim['retraso_s']:.2f} s només es produeix a les primeres peces.")
+    notas.append(
+        f"Esperes: la fórmula suposa que cada recurs espera CM − t des de la 2a peça. En règim "
         f"coincideixen ({nt['espera_ciclo_teoria_s']:.2f} s per cicle a la teoria i "
         f"{nt['espera_ciclo_sim_s']:.2f} s al diagrama); la diferència ve de l'arrencada, on les "
-        f"primeres peces surten més ràpid que CM i els recursos esperen menys."))
-    _seccions_finals(m, detalle)
+        f"primeres peces surten més ràpid que CM i els recursos esperen menys.")
+    return notas
 
 
 def _seccions_finals(m: dict, detalle: bool) -> None:
@@ -562,19 +603,8 @@ def _seccions_finals(m: dict, detalle: bool) -> None:
 
     # 5 ───────────────────────────────────────────────────────────────────────
     _titulo("5. PECES (entrada = inici de la primera operació, sortida = final de Q)")
-    files = m["piezas"]
-    if not detalle and len(files) > 12:
-        mostrar = files[:5] + [None] + [f for f in files if f["pieza"] in (a, b)] + [None] + files[-2:]
-        vistos, net = set(), []
-        for f in mostrar:  # sin duplicados y conservando los separadores
-            if f is None or f["pieza"] not in vistos:
-                net.append(f)
-                vistos.add(None if f is None else f["pieza"])
-        mostrar = net
-    else:
-        mostrar = files
     print(f"{'Peça':>6}{'entrada (s)':>14}{'sortida (s)':>14}{'temps de pas (s)':>18}")
-    for f in mostrar:
+    for f in _piezas_a_mostrar(m, detalle):
         if f is None:
             print(f"{'…':>6}")
             continue
@@ -599,6 +629,104 @@ def _seccions_finals(m: dict, detalle: bool) -> None:
 # ─────────────────────────────────────────────────────────────────────────────
 # EXPORTACIÓN
 # ─────────────────────────────────────────────────────────────────────────────
+
+
+def a_markdown(m: dict) -> str:
+    """Informe completo en Markdown (en catalán) para pasarlo a Word, con huecos para las dos figuras."""
+    N, (a, b) = m["n_piezas"], m["ventana"]
+    cb, nt, sim = m["cuello_botella"], m["notas"], m["simulacion"]
+    esc = lambda s: s.replace("*", "\\*")  # noqa: E731
+    md: list[str] = []
+    add = md.append
+
+    def tabla(cabecera, filas):
+        add("| " + " | ".join(cabecera) + " |")
+        add("|" + "|".join("---" for _ in cabecera) + "|")
+        for f in filas:
+            add("| " + " | ".join(str(x) for x in f) + " |")
+        add("")
+
+    add("# Diagrama O-T · Bolígraf retràctil\n")
+    add(f"Comanda de **{N} peces** · règim calculat amb P{a} → P{b} · camí crític {' → '.join(nt['ruta'])}\n")
+
+    add("## 1. Diagrama de procés\n")
+    add('![Figura 1: diagrama de procés](./Diagrams/Image/ORPR%20Diagrama%20Procesos-2026-10-18-133655.png "Figura 1: diagrama de procés")\n')
+    add("El bolígraf es munta a partir de dues branques que s'uneixen al muntatge final (E). A la branca "
+        "mecànica, el cos (I), el con (N) i el polsador (U) s'injecten en paral·lel i passen pel sobremoldejat "
+        "del grip (G) i pel muntatge del mecanisme retràctil (M). A la branca de tinta, el portatintes (T) "
+        "passa per l'omplert de tinta (L). Després del muntatge final, el bolígraf passa pel control de "
+        "qualitat (Q).\n")
+    tabla(["Op", "Operació", "Temps (s/peça)", "Rep material de"],
+          [(op, OPERACIONES[op][0], f"{OPERACIONES[op][1]:.2f}", ", ".join(FLUJO.get(op, [])) or "—")
+           for op in ORDEN])
+
+    add("## 2. Diagrama O-T\n")
+    add('![Figura 1: diagrama O-T (Gantt) de les primeres 14 peces](./Diagrams/Image/ORPR%20Diagrama%20OT-2026-10-18-133709.png "diagrama O-T (Gantt) de les primeres 14 peces")\n')
+    add(f"Cada fila és una operació i cada barra, una peça. Cada barra comença quan acaba la tasca de la qual "
+        f"depèn. Els temps exactes s'han obtingut reproduint el diagrama en Python i ampliant-lo a {N} peces "
+        f"amb la mateixa regla. A partir de P{nt['paso_constante_desde']} el procés és estable: totes les "
+        f"operacions es llancen al ritme de {cb} ({OPERACIONES[cb][0]}, {OPERACIONES[cb][1]:.2f} s), "
+        f"l'operació més lenta.\n")
+
+    add("## 3. Resultats\n")
+    tabla(["Paràmetre", "Valor"], _resultados(m))
+
+    add("## 4. Teoria (P3-Id_fluxe) vs simulació (diagrama O-T)\n")
+    tabla(["Magnitud", "Fórmula (pàgina P3)", "Teoria", "Simulació", "Diferència"],
+          [(esc(n), f, t, s, d) for n, f, t, s, d in _filas_teoria(m)])
+    add(esc(_nota_asterisco(m)) + "\n")
+    add("### Per què difereixen\n")
+    for texto in _notas(m):
+        add("- " + esc(texto))
+    add("")
+
+    add("## 5. Resultats per operació (format P3 p36)\n")
+    filas = []
+    for r in m["por_operacion"]:
+        filas.append((
+            r["op"], r["nombre"], f"{r['t_op']:.2f}", f"{r['utilizacion_regimen']:.1%}",
+            f"{r['lead_time_op']:.2f}",
+            "—" if r["estoc_max"] is None else r["estoc_max"],
+            "—" if r["estoc_medio_regimen"] is None else f"{r['estoc_medio_regimen']:.2f}",
+            f"{r['espera_por_pieza_regimen']:.2f}", f"{r['espera_entre_piezas']:.2f}",
+            f"{r['espera_total_teoria']:.2f}",
+        ))
+    tabla(["Op", "Operació", "t op (s)", "Utilització", "Lead time op (s)", "Estoc màx (peces)",
+           "Estoc mitjà (peces)", "Espera/peça (s)", "Esperes (s)", "Esperes teoria (s)"], filas)
+    add("Estoc màx: peces que esperen a la vegada a l'entrada de l'operació durant la comanda (suma de les "
+        "seves cues). Estoc mitjà, utilització i espera/peça: en règim. Esperes: temps total aturat entre "
+        "peces dins la comanda. Esperes teoria: (CM − t)·(Q−1).\n")
+
+    add("## 6. Estoc per magatzem\n")
+    tabla(["Magatzem", "Espera/peça en règim (s)", "Estoc mitjà en règim (peces)", "Espera màx (s)",
+           "Estoc màx (peces)", "Estoc mitjà a la comanda (peces)"],
+          [(f"{e['origen']} → {e['destino']}", f"{e['espera_pieza_regimen']:.2f}",
+            f"{e['estoc_medio_regimen']:.2f}", f"{e['espera_pieza_max']:.2f}", e["estoc_max"],
+            f"{e['estoc_medio_pedido']:.2f}") for e in m["estoc"]])
+
+    add("## 7. Entrada i sortida de les peces\n")
+    add("Entrada: inici de la primera operació de la peça. Sortida: final de Q.\n")
+    tabla(["Peça", "Entrada (s)", "Sortida (s)", "Temps de pas (s)"],
+          [("…", "", "", "") if f is None else
+           (f"P{f['pieza']}", f"{f['entrada']:.2f}", f"{f['salida']:.2f}", f"{f['paso']:.2f}")
+           for f in _piezas_a_mostrar(m, False)])
+    if N >= nt["paso_constante_desde"]:
+        add(f"A partir de P{nt['paso_constante_desde']} el temps de pas és constant "
+            f"({m['piezas'][-1]['paso']:.2f} s).\n")
+
+    add("## 8. Comprovació del diagrama\n")
+    if m["problemas"]:
+        add(f"El diagrama té {len(m['problemas'])} conflictes:\n")
+        for p in m["problemas"][:20]:
+            add("- " + p)
+        add("")
+    else:
+        add("Cap recurs fa dues peces alhora i cap operació comença abans que les seves entrades.\n")
+
+    add("## 9. Com es calcula i s'interpreta cada paràmetre (P3-Id_fluxe)\n")
+    for nombre, texto in DEFINICIONES:
+        add(f"**{nombre}.** {texto}\n")
+    return "\n".join(md)
 
 
 def exportar_csv(m: dict, carpeta: str | Path = ".", excel: bool = False) -> list[Path]:
@@ -654,6 +782,7 @@ if __name__ == "__main__":
     p.add_argument("--csv", action="store_true", help="exportar tiempos exactos a CSV")
     p.add_argument("--excel", action="store_true", help="CSV con ';' y coma decimal")
     p.add_argument("--mermaid", action="store_true", help="guardar el Gantt de Mermaid para N piezas")
+    p.add_argument("--md", action="store_true", help="guardar el informe en Markdown (para Word)")
     args = p.parse_args()
 
     m = metricas(args.piezas, tuple(args.ventana))
@@ -665,3 +794,7 @@ if __name__ == "__main__":
         ruta = Path(f"diagrama_ot_P{args.piezas}.mmd")
         ruta.write_text(a_mermaid(args.piezas), encoding="utf-8")
         print("Mermaid:", ruta)
+    if args.md:
+        ruta = Path(f"informe_{args.piezas}_peces.md")
+        ruta.write_text(a_markdown(m), encoding="utf-8")
+        print("Markdown:", ruta)
