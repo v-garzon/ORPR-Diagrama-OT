@@ -1,14 +1,69 @@
-
+══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 DIAGRAMA O-T · BOLÍGRAF RETRÀCTIL — comanda de 100 peces
-Règim calculat amb P10 → P20 (10 intervals)
-──────────────────────────────────────────────────────────────────────────────
-Termini de lliurament (100 peces)      8677.65 s   = 2 h 24 min 37.65 s
-Temps de cicle del procés               84.48 s/peça   (coll d'ampolla: L · Llenado tinta, 84.48 s)
-Capacitat                               42.61 peces/h
-Productivitat                            4.73 peces/h/recurs   (9 recursos)
+Règim calculat amb P10 → P20 (10 intervals) · camí crític I → G → M → E → Q
+══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-ESTOC ENTRE OPERACIONS
-              — règim (P10→P20) —            — comanda (P0→P100) —        
+1. RESULTATS
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Termini de lliurament (100 peces)      8677.65 s   = 2 h 24 min 37.65 s
+Temps de cicle del procés                84.48 s/peça   (coll d'ampolla: L · Llenado tinta, 84.48 s)
+Capacitat                                42.61 peces/h
+Productivitat                             4.73 peces/h/recurs   (9 recursos)
+Estoc                             màx 1 peça per magatzem · màx 7 peces en cua a tota la línia
+                                  4.85 bolígrafs de mitjana dins el procés en règim (màx 5)
+Espera dels recursos              15384.07 s en total · la més gran: N (4071.68 s)
+Equilibrat de la línia            78.9%   (160.21 s d'espera per cicle sobre 9 × 84.48 s)
+
+2. TEORIA (P3-Id_fluxe) vs SIMULACIÓ (diagrama O-T)
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Magnitud                   Fórmula (pàgina P3)                   Teoria     Simulació    Diferència
+Lead time 1a unitat        LTu = Σt camí crític (p41)          344.61 s      344.61 s       +0.00 s
+Termini (100 peces)        LTu + CM·(Q−1) (p41)               8708.13 s     8677.65 s      -30.48 s
+Temps de cicle             C = CM = màx t (p17, p41)            84.48 s       84.48 s       +0.00 s
+Capacitat                  3600 / C (p5)                      42.61 p/h     42.61 p/h     +0.00 p/h
+Productivitat              Capacitat / recursos (p5)         4.73 p/h/r    4.73 p/h/r   +0.00 p/h/r
+Estoc en procés (règim)    WIP = LT / C [3] (p16)              4.08 bol      4.85 bol     +0.77 bol
+Estoc màxim en procés *    [7] (p19, p21)                     34.61 bol      5.00 bol             —
+Retard acumulat D *        (CM − C1)·(Q−1) [10] (p20)         2553.21 s       64.75 s             —
+Esperes dels recursos      Σ (CM − t)·(Q−1) (p17, p46)       15860.79 s    15384.07 s     -476.72 s
+Equilibrat de la línia     Σt / (recursos · CM)                   78.9%         78.9%       +0.0 pp
+  * Hipòtesi de la fórmula: I empeny al seu ritme (C1 = 58.69 s), no al del coll d'ampolla; no és comparable
+    directament amb el diagrama.
+
+  Per què difereixen
+  · Termini: la fórmula suposa que, després de P1, totes les peces surten cada CM = 84.48 s. Al diagrama P2–P7
+    surten cada 79.06–81.10 s perquè L té 30.48 s d'avançament en arrencar (la seva P1 acaba a 158.21 s i E no la
+    necessita fins a 188.69 s). Per això el termini real és 30.48 s més curt.
+  · Estoc en procés: la fórmula [3] amb LTu suposa que la peça no espera mai. En règim cada bolígraf passa 64.75 s
+    en cues al camí crític (I→G 25.79 s, G→M 19.56 s, M→E 19.40 s, E→Q 0.00 s), que equivalen a 0.77 bolígrafs
+    d'estoc (64.75 / 84.48).
+  · Estoc màxim i retard (*): les fórmules [7] i [10] serien les d'una línia en què I empeny al seu ritme: l'estoc
+    arribaria a 34.61 bolígrafs i l'última peça tardaria 2553.21 s més que la primera. Al diagrama I arrenca al
+    ritme del coll d'ampolla (p18), per això l'estoc no creix i el temps de pas és constant a partir de P10; el
+    retard de 64.75 s només es produeix a les primeres peces.
+  · Esperes: la fórmula suposa que cada recurs espera CM − t des de la 2a peça. En règim coincideixen (160.21 s
+    per cicle a la teoria i 160.21 s al diagrama); la diferència ve de l'arrencada, on les primeres peces surten
+    més ràpid que CM i els recursos esperen menys.
+
+3. PER OPERACIÓ (format P3 p36)
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Op  Recurs                  t op   Util.  Lead t. op  Estoc màx  Estoc mitjà  Espera/peça    Esperes  Esperes teo.
+I   Inyección cuerpo       58.69   69.5%   8326.98 s          —            —      25.79 s  2457.98 s     2553.21 s
+N   Inyección cono         42.39   50.2%   8310.68 s          —            —      42.09 s  4071.68 s     4166.91 s
+U   Inyección pulsador     54.90   65.0%   8323.19 s          —            —      29.58 s  2833.19 s     2928.42 s
+G   Sobremoldeo grip       64.92   76.8%   8359.00 s        3 p       1.15 p      19.56 s  1867.00 s     1936.44 s
+M   Mecanismo retráctil    65.08   77.0%   8378.72 s        1 p       0.23 p      19.40 s  1870.72 s     1920.60 s
+T   Montaje portatintas    73.73   87.3%   8426.50 s          —            —      10.75 s  1053.50 s     1064.25 s
+L   Llenado tinta          84.48  100.0%   8448.00 s        1 p       0.13 p       0.00 s     0.00 s        0.00 s
+E   Ensamblaje final       76.86   91.0%   8409.90 s        2 p       0.23 p       7.62 s   723.90 s      754.38 s
+Q   Control calidad        79.06   93.6%   8412.10 s        1 p       0.00 p       5.42 s   506.10 s      536.58 s
+  Estoc màx: peces que esperen a la vegada a l'entrada de l'operació durant la comanda (suma de les seves cues).
+    Estoc mitjà, utilització i espera/peça: en règim. Esperes: total entre peces dins la comanda; Esperes teo.:
+    (CM − t)·(Q−1).
+
+4. ESTOC PER MAGATZEM
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+              — règim (P10→P20) —                 — comanda —             
 Magatzem     espera/peça   estoc mitjà  espera màx  estoc màx  estoc mitjà
 I → G            25.79 s        0.31 p     25.79 s        1 p       0.29 p
 N → G            42.09 s        0.50 p     42.09 s        1 p       0.47 p
@@ -19,20 +74,8 @@ M → E            19.40 s        0.23 p     19.40 s        1 p       0.22 p
 L → E             0.00 s        0.00 p     30.48 s        1 p       0.01 p
 E → Q             0.00 s        0.00 p      2.20 s        1 p       0.00 p
 
-ESPERA DELS RECURSOS
-Op  Recurs                    t op  espera/peça  utilització  espera inicial  espera total*
-I   Inyección cuerpo         58.69      25.79 s       69.5%          0.00 s      2457.98 s
-N   Inyección cono           42.39      42.09 s       50.2%          0.00 s      4071.68 s
-U   Inyección pulsador       54.90      29.58 s       65.0%          0.00 s      2833.19 s
-G   Sobremoldeo grip         64.92      19.56 s       76.8%         58.69 s      1867.00 s
-M   Mecanismo retráctil      65.08      19.40 s       77.0%        123.61 s      1870.72 s
-T   Montaje portatintas      73.73      10.75 s       87.3%          0.00 s      1053.50 s
-L   Llenado tinta            84.48       0.00 s      100.0%         73.73 s         0.00 s
-E   Ensamblaje final         76.86       7.62 s       91.0%        188.69 s       723.90 s
-Q   Control calidad          79.06       5.42 s       93.6%        265.55 s       506.10 s
-  espera/peça i utilització: règim · *espera total entre peces dins la comanda
-
-PECES (entrada = inici de la primera operació, sortida = final de Q)
+5. PECES (entrada = inici de la primera operació, sortida = final de Q)
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   Peça   entrada (s)   sortida (s)  temps de pas (s)
     P1          0.00        344.61            344.61
     P2         58.69        423.67            364.98
@@ -46,6 +89,30 @@ PECES (entrada = inici de la primera operació, sortida = final de Q)
    P99       8183.81       8593.17            409.36
   P100       8268.29       8677.65            409.36
 
-COMPROVACIÓ DEL DIAGRAMA
+6. COMPROVACIÓ DEL DIAGRAMA
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   Cap recurs fa dues peces alhora i cap operació comença abans que les seves entrades.
 
+7. COM ES CALCULA I S'INTERPRETA CADA PARÀMETRE (P3-Id_fluxe)
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Termini de lliurament. Temps total necessari per lliurar el lot de producció (p6): des que comença la primera
+    operació de P1 fins que l'última peça surt de Q. Al diagrama és el final de l'última barra de Q. Fórmula peça
+    a peça (p41): LT = LTu + CM·(Q−1). LTu és el lead time de la 1a unitat, la suma dels temps del camí més llarg
+    del flux, i les Q−1 peces restants surten al ritme de l'operació més lenta, CM.
+  Temps de cicle. Temps des que es lliura una unitat fins a la següent (p6). El del procés l'imposa l'operació més
+    lenta, CM (p17, p41). No s'ha de confondre amb el temps de procés de cada operació. Al diagrama és la
+    distància entre els finals de dues barres consecutives de Q en règim.
+  Capacitat. Producció del procés per unitat de temps (p5): 3600 / C peces/h. Al diagrama són les peces que surten
+    de Q en una hora de règim (p36, unitats lliurades per hora).
+  Productivitat. Capacitat d'un recurs mesurada per unitat de temps i de recurs (p5): capacitat / nº de recursos.
+    Depèn del que es compti com a recurs (màquines o operaris); es canvia al diccionari RECURSOS.
+  Estoc (WIP). Producte en elaboració que espera a ser processat (p6). Al diagrama és el temps entre el final
+    d'una operació i l'inici de la següent per a la mateixa peça (les fletxes puntejades). Es relaciona amb el
+    lead time per WIP = LT / C [3] (p16). Amb desequilibri, l'estoc creix si la primera operació empeny al seu
+    ritme ([7], p19-21), però no creix si el seu ritme s'ajusta al de la més lenta (p18).
+  Espera. Temps que un lloc de treball està aturat esperant material (p17, «tiempos de paro»; p36, columna
+    Esperas). Al diagrama són els buits dins de cada fila; el retard abans d'arrencar no compta. Si la línia va al
+    ritme del coll d'ampolla, cada recurs espera CM − t per peça.
+  Retard acumulat (D). Quant més triga l'última peça que la primera a travessar el procés (p20-21). La fórmula D =
+    (CM − C1)·(Q−1) suposa que la primera operació empeny al seu ritme C1.
+  Lead time de l'operació. Des que l'operació comença la primera peça fins que acaba l'última (p36-37).
